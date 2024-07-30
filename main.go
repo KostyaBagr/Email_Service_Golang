@@ -35,21 +35,21 @@ func init() {
 // parsing json file
 func parseJson() ([]Studio, error){
 	jsonFile, err := os.Open("studios.json")
-
+	
 	if err != nil {
-        return nil, fmt.Errorf("error opening studios.json: %v", err)
-    }
-
-    fmt.Println("Successfully Opened studios.json")
-    defer jsonFile.Close()
+		return nil, fmt.Errorf("error opening studios.json: %v", err)
+	}
+	
+	fmt.Println("Successfully Opened studios.json")
+	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-
+	
 	var studios []Studio
 	err = json.Unmarshal(byteValue, &studios)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling studios.json: %v", err)
 	}
-
+	
 	return studios, nil
 	
 }
@@ -58,11 +58,11 @@ func parseJson() ([]Studio, error){
 // format template
 func templateFormating(studio *Studio) (bytes.Buffer, error){
 	template, _ := template.ParseFiles("template/index.html")
-
+	
 	var body bytes.Buffer
 	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	body.Write([]byte(fmt.Sprintf("Subject: This is a test subject \n%s\n\n", mimeHeaders)))
-
+	
 	template.Execute(&body, struct {
 		Name    string
 		Message string
@@ -82,7 +82,7 @@ func smtpService(studios []Studio){
 	port := os.Getenv("GMAIL_PORT")
 
 	for _, studio := range studios {
-		
+
 		body, err := templateFormating(&studio)
 		if err != nil{
 			log.Fatalf("Error formating template: %v", err)
@@ -90,7 +90,7 @@ func smtpService(studios []Studio){
 
 		auth := smtp.PlainAuth("", fromEmail, password, host)
 		err = smtp.SendMail(host+":"+port,  auth, fromEmail, []string{studio.Email},  body.Bytes())
-		
+
 		if err != nil{
 			fmt.Println(err)
 			return
